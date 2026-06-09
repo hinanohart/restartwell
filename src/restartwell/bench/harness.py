@@ -88,7 +88,7 @@ def run(
 
 
 if __name__ == "__main__":  # pragma: no cover
-    out = sys.argv[1] if len(sys.argv) > 1 else "results/v0.1.0a1_metrics.json"
+    out = sys.argv[1] if len(sys.argv) > 1 else "results/v0.1.0a2_metrics.json"
     res = run(out_path=out)
     print(json.dumps(res["env"], indent=2))
     print("all_gates_passed:", res["all_gates_passed"])

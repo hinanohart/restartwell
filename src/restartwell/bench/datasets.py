@@ -107,7 +107,12 @@ def make_flat(
     fail_frac: float = 0.05,
     cohort: str | None = None,
 ) -> list[AttemptRecord]:
-    """Exponential cost-to-success (constant hazard): borderline / inconclusive."""
+    """Exponential cost-to-success (constant hazard): borderline.
+
+    A true constant hazard sits on the restart_helps/do_not_restart boundary; on a finite
+    sample the verdict reads either ``inconclusive`` or (with a small negative concavity bias)
+    ``do_not_restart`` — never ``restart_helps``. Used by G_flip as the fail-closed guard.
+    """
     rng = np.random.default_rng(seed)
     a = rng.exponential(scale, size=n)
     timeout = float(np.quantile(a, timeout_q))

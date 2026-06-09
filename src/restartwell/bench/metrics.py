@@ -41,6 +41,8 @@ def held_out_score(
     seed: int = 0,
 ) -> HeldOutScore:
     """Fit tau* on ``train``; score expected cost-per-success on ``held``."""
+    # n_boot=1: only the point tau* (the grid argmin) is needed here; the headline CI is
+    # computed separately below via bootstrap_survival_ci on the held split.
     tau_star = optimal_cutoff(train, r=r, grid=grid, n_boot=1, alpha=alpha, seed=seed).tau_star
     surv_h = cost_survival(held)
     e_star = e_total(tau_star, surv_h, r)

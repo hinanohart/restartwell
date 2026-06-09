@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "restartwell"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Offline renewal-reward restart-cutoff instrument for agent attempt-cost logs: reads cost + outcome, emits a cost-optimal restart cutoff tau* with bootstrap CI, savings vs current timeout, and a paste-able config."
 readme = "README.md"
 requires-python = ">=3.11"

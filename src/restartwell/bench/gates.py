@@ -33,7 +33,14 @@ def gate_flip(*, n: int = 600, seed: int = 0, n_boot: int = 400) -> dict[str, ob
     dfr = restart_effectiveness(make_dfr(n=n, seed=seed), n_boot=n_boot, seed=0)
     ifr = restart_effectiveness(make_ifr(n=n, seed=seed), n_boot=n_boot, seed=0)
     flat = restart_effectiveness(make_flat(n=n, seed=seed), n_boot=n_boot, seed=0)
-    passed = dfr.decision == "restart_helps" and ifr.decision == "do_not_restart"
+    # DFR must say restart_helps, IFR must say do_not_restart, and a constant-hazard (flat)
+    # sample must never *falsely* claim restart_helps (it may read inconclusive or, with the
+    # small finite-sample negative bias, do_not_restart — both are fail-closed-correct).
+    passed = (
+        dfr.decision == "restart_helps"
+        and ifr.decision == "do_not_restart"
+        and flat.decision != "restart_helps"
+    )
     return {
         "passed": bool(passed),
         "dfr_decision": dfr.decision,
@@ -112,7 +119,11 @@ def gate_censor(*, n: int = 2000, seed: int = 0) -> dict[str, object]:
 
 
 def _e_min_independent(surv, tau: float) -> float:  # type: ignore[no-untyped-def]
-    """An independent integral of S over [0, tau] (explicit step-function quadrature)."""
+    """An independent integral of S over [0, tau] (explicit step-function quadrature).
+
+    Intentionally re-implements ``CostSurvival.e_min`` from scratch so G_censor cross-checks
+    the production integral against a second derivation — do **not** refactor this to call
+    ``e_min`` (that would defeat the gate)."""
     total = 0.0
     prev_x = 0.0
     prev_y = 1.0

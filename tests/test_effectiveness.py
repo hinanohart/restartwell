@@ -67,6 +67,8 @@ def test_restart_effectiveness_inconclusive_when_few_successes():
     v = restart_effectiveness(att, n_min_success=20, n_boot=100, seed=0)
     assert v.decision == "inconclusive"
     assert v.n_success == 5
+    # too few successes -> neutral trend, not an over-read raw sign
+    assert v.hazard_trend == "flat"
 
 
 def test_cost_hazard_runs():

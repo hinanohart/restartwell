@@ -6,7 +6,7 @@
     "numpy": "2.4.6",
     "date": "2026-06-09",
     "seed": 0,
-    "version": "0.1.0a1",
+    "version": "0.1.0a2",
     "backend": "hazardloop",
     "n_boot": 1000,
     "substrate": "synthetic-faithful",

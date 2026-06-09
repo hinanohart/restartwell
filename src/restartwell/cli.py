@@ -10,12 +10,14 @@ restartwell emit    --input logs.jsonl --r 1500 --framework swe-agent --unit tok
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
+from typing import TypeVar, cast
 
 import typer
 
 from restartwell.cutoff import optimal_cutoff
 from restartwell.effectiveness import restart_effectiveness
-from restartwell.emit import emit_config
+from restartwell.emit import Framework, Unit, emit_config
 from restartwell.instrument import analyze, analyze_by_cohort
 from restartwell.intake import from_jsonl
 from restartwell.savings import expected_savings
@@ -30,6 +32,19 @@ def _load(input: str, cost_key: str, label_key: str, cohort_key: str | None) -> 
         typer.echo("no attempts parsed from input", err=True)
         raise typer.Exit(code=2)
     return attempts
+
+
+_T = TypeVar("_T")
+
+
+def _compute(fn: Callable[[], _T]) -> _T:
+    """Run a domain computation, turning a domain ``ValueError`` (e.g. no successes by any
+    cutoff) into a clean CLI error with exit code 2 instead of a raw traceback."""
+    try:
+        return fn()
+    except ValueError as exc:
+        typer.echo(f"cannot compute cutoff: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
 
 
 @app.command()
@@ -70,7 +85,7 @@ def cutoff(
 ) -> None:
     """Print the renewal-reward optimal cutoff tau* and its percentile baselines."""
     attempts = _load(input, cost_key, label_key, cohort_key)
-    c = optimal_cutoff(attempts, r=r, n_boot=n_boot, alpha=alpha, seed=seed)
+    c = _compute(lambda: optimal_cutoff(attempts, r=r, n_boot=n_boot, alpha=alpha, seed=seed))
     typer.echo(f"tau_star: {c.tau_star:g}  95% CI [{c.ci.lower:g}, {c.ci.upper:g}]")
     typer.echo(f"E_total(tau*): {c.e_total_at_star:g}")
     typer.echo(f"p90 cutoff: {c.p90:g}  E_total(p90): {c.e_total_at_p90:g}")
@@ -92,7 +107,7 @@ def savings(
 ) -> None:
     """Print expected savings of tau* vs your current cutoff."""
     attempts = _load(input, cost_key, label_key, cohort_key)
-    c = optimal_cutoff(attempts, r=r, n_boot=n_boot, alpha=alpha, seed=seed)
+    c = _compute(lambda: optimal_cutoff(attempts, r=r, n_boot=n_boot, alpha=alpha, seed=seed))
     s = expected_savings(
         attempts,
         current_cutoff=current,
@@ -136,8 +151,14 @@ def emit(
         typer.echo(f"# verdict is '{v.decision}', not 'restart_helps' — no cutoff config emitted.")
         typer.echo(f"# {v.reason}")
         raise typer.Exit(code=0)
-    c = optimal_cutoff(attempts, r=r, seed=seed)
-    snippet, faithful = emit_config(c.tau_star, framework=framework, unit=unit)  # type: ignore[arg-type]
+    c = _compute(lambda: optimal_cutoff(attempts, r=r, seed=seed))
+    # framework/unit are validated above, so the casts are runtime-safe narrowings to the
+    # Literal types emit_config expects (satisfies both mypy and ty without an ignore).
+    snippet, faithful = emit_config(
+        c.tau_star,
+        framework=cast(Framework, framework),
+        unit=cast(Unit, unit),
+    )
     typer.echo(snippet)
     if not faithful:
         typer.echo("# NOTE: approximate mapping — adapt the budget knob to your runner.")

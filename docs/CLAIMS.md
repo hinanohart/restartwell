@@ -39,7 +39,7 @@ does and does not claim.
 
 No redistributable real agent-cost log is bundled. The committed numbers are measured on a
 **synthetic-faithful** heavy-tail mixture with known DFR/IFR ground truth, on a held-out
-split. This is disclosed verbatim in `results/v0.1.0a1_metrics.json` and the README.
+split. This is disclosed verbatim in `results/v0.1.0a2_metrics.json` and the README.
 
 ## Prior art (honestly cited)
 

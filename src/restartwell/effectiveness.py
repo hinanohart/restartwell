@@ -32,6 +32,11 @@ def concavity(hazard: CostHazard) -> float:
     Measured over the **event support** [t_first, t_last], anchoring the chord at the first
     and last success times. Anchoring at the origin would inject a spurious convex bias from
     the dead zone before the first possible success (where H is flat at 0).
+
+    Only the **sign** (and its bootstrap CI) is load-bearing: the verdict in
+    ``restart_effectiveness`` keys off CI separation from zero, not the magnitude. The
+    magnitude is censoring-dependent (heavier timeout censoring compresses the cumulative
+    hazard and shrinks the area) and must not be read as an effect size.
     """
     t = hazard.times.astype(np.float64)
     h = hazard.cumulative_hazard.astype(np.float64)
@@ -77,7 +82,11 @@ def restart_effectiveness(
     decision: Decision
     trend: HazardTrend
     if ns < n_min_success:
-        trend = "decreasing" if point > 0 else "increasing" if point < 0 else "flat"
+        # Inconclusive: report a neutral "flat" trend rather than the raw point sign — with
+        # too few successes the sign is not separated from zero, and labelling it
+        # decreasing/increasing would over-read an unresolved estimate (matches the
+        # CI-straddle inconclusive branch below).
+        trend = "flat"
         return RestartVerdict(
             decision="inconclusive",
             hazard_trend=trend,

@@ -3,7 +3,25 @@
 All notable changes to restartwell are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/) (pre-1.0: minor/patch may break).
 
-## [0.1.0a1] — unreleased (pre-alpha)
+## [0.1.0a2] — 2026-06-09 (pre-alpha)
+
+Polish-only release; no change to any headline number or gate result (the measurement core
+is untouched). A post-release audit (two fidelity/quality monitors + one meta verifier)
+found no defects, only minor refinements.
+
+### Changed
+- `restart_effectiveness`: the inconclusive (too-few-successes) branch now reports a neutral
+  `hazard_trend="flat"` instead of an over-read raw point sign, matching the CI-straddle
+  inconclusive branch.
+- `concavity` docstring now states that only the **sign** (and its CI) is load-bearing; the
+  magnitude is censoring-dependent and is not an effect size.
+- CLI `cutoff` / `savings` / `emit`: a domain error on no-success input now exits cleanly
+  with code 2 and a message instead of a raw traceback.
+- `gate_flip` additionally asserts a constant-hazard (flat) sample never reads
+  `restart_helps` (fail-closed guard); docstrings clarified for the flat case and for the
+  intentionally-independent `E[min]` re-derivation in `gate_censor`.
+
+## [0.1.0a1] — 2026-06-09 (pre-alpha)
 
 Initial pre-alpha. An offline renewal-reward restart-cutoff instrument for agent
 attempt-cost logs.
