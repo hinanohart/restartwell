@@ -1,0 +1,37 @@
+# secrets / credentials (R15)
+.env
+.env.*
+*.key
+*.pem
+*token*
+*secret*
+.config/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.import_linter_cache/
+
+# large data / weights (must never be committed)
+*.npz
+*.onnx
+*.safetensors
+*.bin
+*.pt
+*.parquet
+
+# build artifacts
+*.lock
+.restartwell.lock
+.restartwell-progress.json
+experiments/_wip/

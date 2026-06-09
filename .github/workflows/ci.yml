@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test ${{ matrix.os }} py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Ruff
+        shell: bash
+        run: ruff check src tests
+      - name: Mypy (strict)
+        shell: bash
+        run: mypy
+      - name: Import-linter (hazardloop boundary)
+        shell: bash
+        run: lint-imports
+      - name: Pytest
+        shell: bash
+        run: pytest -q
+
+  honesty:
+    name: honesty + prior-art + boundary guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Banned marketing words must not appear in README/docs
+        shell: bash
+        run: |
+          set -e
+          # ERE; allow the documented "# honest:ok" escape on a line
+          if grep -rEn -i "\b(state[- ]of[- ]the[- ]art|sota|world[- ]?first|the first |best[- ]in[- ]class|production[- ]ready|fully automatic|guaranteed optimal)\b" README.md docs/ \
+              | grep -v "# honest:ok"; then
+            echo "::error::banned marketing language found (add evidence or '# honest:ok')"
+            exit 1
+          fi
+          echo "no banned marketing language"
+      - name: Prior-art citations must be present (verbatim)
+        shell: bash
+        run: |
+          set -e
+          for s in "Luby" "Sinclair" "Zuckerman" "1709.10405" "hazardloop"; do
+            if ! grep -rqF "$s" README.md docs/CLAIMS.md; then
+              echo "::error::missing required prior-art citation: $s"
+              exit 1
+            fi
+          done
+          echo "prior-art citations present"
+      - name: Negative fixture (guard greps are live, not dead)
+        shell: bash
+        run: |
+          set -e
+          # this string must NOT be present; if grep -q returns 0 we'd have a problem
+          if grep -rqF "ZZZ_sentinel_should_never_exist_ZZZ" README.md docs/; then
+            echo "::error::negative fixture matched — grep is miswired"
+            exit 1
+          fi
+          echo "negative fixture clean (greps are live)"
+      - name: Boundary — no Aalen-Johansen / CIF reimplementation in src
+        shell: bash
+        run: |
+          set -e
+          if grep -rEn -i "aalen[_-]?johansen|cumulative_incidence|cif_at|cif_by_cause|competing[_-]risk" src/restartwell; then
+            echo "::error::AJ/CIF vocabulary found in src (hazardloop scope must not be reimplemented)"
+            exit 1
+          fi
+          echo "boundary clean (no AJ/CIF reimplementation)"
+      - name: Boundary line present in README
+        shell: bash
+        run: |
+          set -e
+          grep -qF "hazardloop" README.md
+          echo "boundary line present"

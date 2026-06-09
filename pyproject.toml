@@ -1,0 +1,107 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "restartwell"
+version = "0.1.0a1"
+description = "Offline renewal-reward restart-cutoff instrument for agent attempt-cost logs: reads cost + outcome, emits a cost-optimal restart cutoff tau* with bootstrap CI, savings vs current timeout, and a paste-able config."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "hinanohart" }]
+keywords = ["agents", "restart", "timeout", "renewal-reward", "luby", "survival-analysis", "reliability", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    # hazardloop (MIT) supplies the Kaplan-Meier / Nelson-Aalen / cluster-bootstrap primitives on
+    # the cost-to-success axis. restartwell ships ONLY the renewal-reward decision/cutoff layer.
+    # Pinned to an exact commit for reproducibility. If this git dependency is unavailable, the
+    # bundled standalone shim (restartwell._shim) activates automatically (see [standalone]).
+    "hazardloop @ git+https://github.com/hinanohart/hazardloop@b56c86fdb1295cda2e02353a4a40b7e33bfc994d",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+# No extra packages: marks an install that intends to run on the bundled KM/NA shim when the
+# hazardloop git dependency cannot be fetched. The shim activates automatically on ImportError.
+standalone = []
+adapters = []
+plot = ["matplotlib>=3.7"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "import-linter>=2.0",
+    "typer>=0.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/hinanohart/restartwell"
+Repository = "https://github.com/hinanohart/restartwell"
+
+[project.scripts]
+restartwell = "restartwell.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/restartwell"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["B905"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+files = ["src/restartwell"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.importlinter]
+root_package = "restartwell"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "hazardloop is imported only inside the survival adapter"
+type = "forbidden"
+allow_indirect_imports = true
+source_modules = [
+    "restartwell.types",
+    "restartwell.intake",
+    "restartwell.effectiveness",
+    "restartwell.cutoff",
+    "restartwell.luby",
+    "restartwell.savings",
+    "restartwell.emit",
+    "restartwell.instrument",
+    "restartwell.cli",
+]
+forbidden_modules = ["hazardloop"]

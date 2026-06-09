@@ -1,0 +1,157 @@
+{
+  "env": {
+    "hw": "x86_64",
+    "os": "Linux 6.6.87.2-microsoft-standard-WSL2",
+    "python": "3.12.3",
+    "numpy": "2.4.6",
+    "date": "2026-06-09",
+    "seed": 0,
+    "version": "0.1.0a1",
+    "backend": "hazardloop",
+    "n_boot": 1000,
+    "substrate": "synthetic-faithful",
+    "substrate_note": "validated on a faithful heavy-tail synthetic mixture; no redistributable real agent cost log was available. Numbers are illustrative, not a benchmark claim."
+  },
+  "headline": {
+    "n": 1200,
+    "r": 400.0,
+    "user_timeout": 14311.385277660926,
+    "tau_star_train": 1108.5806216453834,
+    "e_total_tau_star": 1984.9654572317547,
+    "e_total_adhoc": 4602.117610271792,
+    "e_total_p90": 4399.431821537448,
+    "e_total_best_fixed_heldout": 1971.789914355693,
+    "savings_vs_adhoc": 0.568684326362853,
+    "savings_vs_p90": 0.5488132245817873,
+    "savings_vs_adhoc_ci": [
+      0.5268135247125622,
+      0.6063638998566712
+    ],
+    "n_train": 600,
+    "n_held": 600
+  },
+  "gates": {
+    "all_passed": true,
+    "gates": {
+      "G_flip": {
+        "passed": true,
+        "dfr_decision": "restart_helps",
+        "dfr_concavity": 0.07028534381276086,
+        "ifr_decision": "do_not_restart",
+        "ifr_concavity": -0.23138756352723192,
+        "flat_decision": "do_not_restart",
+        "flat_concavity": -0.04217598216658672
+      },
+      "G_calib": {
+        "passed": true,
+        "user_timeout": 14311.385277660926,
+        "cells": [
+          {
+            "r": 0.0,
+            "tau_star_train": 960.5098695915094,
+            "e_total_tau_star": 1596.6948864027888,
+            "e_total_adhoc": 4561.350442410093,
+            "e_total_p90": 4305.187750170859,
+            "ratio_vs_min": 0.370876946386234,
+            "savings_vs_adhoc": 0.6499512794375125,
+            "savings_vs_p90": 0.629123053613766,
+            "savings_ci_lower": 0.616671033099189,
+            "ci_separated": true,
+            "passed": true
+          },
+          {
+            "r": 200.0,
+            "tau_star_train": 1108.5806216453834,
+            "e_total_tau_star": 1801.4331781908195,
+            "e_total_adhoc": 4581.734026340941,
+            "e_total_p90": 4352.309785854153,
+            "ratio_vs_min": 0.413902793419215,
+            "savings_vs_adhoc": 0.6068228387256521,
+            "savings_vs_p90": 0.586097206580785,
+            "savings_ci_lower": 0.5700786816259806,
+            "ci_separated": true,
+            "passed": true
+          },
+          {
+            "r": 400.0,
+            "tau_star_train": 1108.5806216453834,
+            "e_total_tau_star": 1984.9654572317547,
+            "e_total_adhoc": 4602.117610271792,
+            "e_total_p90": 4399.431821537448,
+            "ratio_vs_min": 0.45118677541821267,
+            "savings_vs_adhoc": 0.568684326362853,
+            "savings_vs_p90": 0.5488132245817873,
+            "savings_ci_lower": 0.5268135247125622,
+            "ci_separated": true,
+            "passed": true
+          },
+          {
+            "r": 800.0,
+            "tau_star_train": 1404.722125753131,
+            "e_total_tau_star": 2311.511715996308,
+            "e_total_adhoc": 4642.88477813349,
+            "e_total_p90": 4493.675892904036,
+            "ratio_vs_min": 0.5143921749333138,
+            "savings_vs_adhoc": 0.5021389014685885,
+            "savings_vs_p90": 0.48560782506668626,
+            "savings_ci_lower": 0.45747756332614037,
+            "ci_separated": true,
+            "passed": true
+          }
+        ]
+      },
+      "G_censor": {
+        "passed": true,
+        "internal_diff": 0.0,
+        "mean_diff": 4.547473508864641e-13
+      },
+      "G_luby": {
+        "passed": true,
+        "sequence": [
+          1.0,
+          1.0,
+          2.0,
+          1.0,
+          1.0,
+          2.0,
+          4.0,
+          1.0,
+          1.0,
+          2.0,
+          1.0,
+          1.0,
+          2.0,
+          4.0,
+          8.0
+        ],
+        "expected": [
+          1.0,
+          1.0,
+          2.0,
+          1.0,
+          1.0,
+          2.0,
+          4.0,
+          1.0,
+          1.0,
+          2.0,
+          1.0,
+          1.0,
+          2.0,
+          4.0,
+          8.0
+        ]
+      },
+      "G_determinism": {
+        "passed": true,
+        "tau_star": 1184.4478581010194,
+        "ci": [
+          874.2033913869667,
+          1184.4478581010194
+        ],
+        "concavity": 0.0750112839864102
+      }
+    }
+  },
+  "all_gates_passed": true
+}
