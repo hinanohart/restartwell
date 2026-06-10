@@ -22,30 +22,6 @@ and emits a decision + config. It does not run, retrain, or live-control your ag
 
 ---
 
-## Architecture
-
-```mermaid
-flowchart TD
-    A[logs_jsonl or AttemptRecord list] --> B[intake<br>parse_records / from_jsonl]
-    B --> C[survival<br>Kaplan-Meier via hazardloop or shim]
-    C --> D[effectiveness<br>concavity / restart_effectiveness]
-    D --> E{verdict}
-    E -->|restart_helps| F[cutoff<br>optimal_cutoff tau_star]
-    E -->|do_not_restart| G[instrument<br>assemble]
-    E -->|inconclusive| H[luby<br>luby_schedule]
-    F --> I[savings<br>expected_savings vs current cutoff]
-    F --> G
-    I --> G
-    H --> G
-    G --> J[RestartReport<br>verdict + cutoff + savings + luby]
-```
-
-The `survival` module is the **only** layer that imports `hazardloop`; the rest of the
-pipeline is decoupled from the survival backend and works with the bundled standalone shim
-when `hazardloop` is unavailable. This boundary is enforced by `import-linter`.
-
----
-
 ## Why
 
 Agent runtimes are heavy-tailed: most attempts finish fast, a few hang and burn the budget.
@@ -54,15 +30,6 @@ fresh shot at a fast success — the classical Las-Vegas restart result. Most ag
 a timeout by hand and retry with exponential-backoff folklore. `restartwell` applies the
 30-year restart toolbox (Luby universal schedule; fixed-cutoff renewal-reward optimality; the
 decreasing-hazard restart criterion `E[A] < E[A − t | A > t]`) to your actual cost logs.
-
----
-
-## Boundary
-
-[`hazardloop`](https://github.com/hinanohart/hazardloop) estimates the hazard **shape**
-(Kaplan-Meier / Nelson-Aalen). `restartwell` consumes that shape and ships only the restart
-**decision + cutoff config** layer on top. Both are MIT. `restartwell` does not re-implement
-`hazardloop`'s survival estimators (enforced by import-linter).
 
 ---
 
@@ -133,6 +100,52 @@ reports = analyze_by_cohort(attempts, r=1500, unit="tokens")
 
 ---
 
+## How it works
+
+1. **Intake** (`restartwell.intake`) — parses JSONL or `AttemptRecord` objects; validates cost (finite, ≥ 0) and label.
+2. **Survival** (`restartwell.survival`) — fits a Kaplan-Meier curve on the cost-to-success axis via `hazardloop` (or the bundled shim). This is the **only** module that touches `hazardloop`.
+3. **Effectiveness** (`restartwell.effectiveness`) — tests whether the empirical hazard is decreasing (restart helps), increasing (do not restart), or indeterminate (inconclusive).
+4. **Cutoff** (`restartwell.cutoff`) — when verdict is `restart_helps`, numerically minimises the renewal-reward objective `E_total(τ)` over a grid; computes a cluster-bootstrap CI.
+5. **Savings** (`restartwell.savings`) — estimates cost-per-success at τ\* vs current cutoff; suppresses the estimate when the bootstrap CI straddles zero.
+6. **Luby** (`restartwell.luby`) — when evidence is inconclusive, returns a Luby universal schedule anchored at the median success cost.
+7. **Emit** (`restartwell.emit`) — formats a paste-able config snippet for common agent frameworks.
+8. **Instrument** (`restartwell.instrument`) — `analyze()` wires all of the above into a single `RestartReport`; `analyze_by_cohort()` runs it per cohort.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[logs_jsonl or AttemptRecord list] --> B[intake<br>parse_records / from_jsonl]
+    B --> C[survival<br>Kaplan-Meier via hazardloop or shim]
+    C --> D[effectiveness<br>concavity / restart_effectiveness]
+    D --> E{verdict}
+    E -->|restart_helps| F[cutoff<br>optimal_cutoff tau_star]
+    E -->|do_not_restart| G[instrument<br>assemble]
+    E -->|inconclusive| H[luby<br>luby_schedule]
+    F --> I[savings<br>expected_savings vs current cutoff]
+    F --> G
+    I --> G
+    H --> G
+    G --> J[RestartReport<br>verdict + cutoff + savings + luby]
+```
+
+The `survival` module is the **only** layer that imports `hazardloop`; the rest of the
+pipeline is decoupled from the survival backend and works with the bundled standalone shim
+when `hazardloop` is unavailable. This boundary is enforced by `import-linter`.
+
+---
+
+## Boundary
+
+[`hazardloop`](https://github.com/hinanohart/hazardloop) estimates the hazard **shape**
+(Kaplan-Meier / Nelson-Aalen). `restartwell` consumes that shape and ships only the restart
+**decision + cutoff config** layer on top. Both are MIT. `restartwell` does not re-implement
+`hazardloop`'s survival estimators (enforced by import-linter).
+
+---
+
 ## Illustrative result
 
 On a held-out **synthetic-faithful** heavy-tail (decreasing-hazard) mixture
@@ -144,19 +157,6 @@ ground truth, not a benchmark claim about any real system. They are regenerated 
 `python -m restartwell.bench.harness` and recorded in
 [`results/v0.1.0a2_metrics.json`](results/v0.1.0a2_metrics.json). No redistributable real
 agent-cost log is bundled.
-
----
-
-## How it works
-
-1. **Intake** (`restartwell.intake`) — parses JSONL or `AttemptRecord` objects; validates cost (finite, ≥ 0) and label.
-2. **Survival** (`restartwell.survival`) — fits a Kaplan-Meier curve on the cost-to-success axis via `hazardloop` (or the bundled shim). This is the **only** module that touches `hazardloop`.
-3. **Effectiveness** (`restartwell.effectiveness`) — tests whether the empirical hazard is decreasing (restart helps), increasing (do not restart), or indeterminate (inconclusive).
-4. **Cutoff** (`restartwell.cutoff`) — when verdict is `restart_helps`, numerically minimises the renewal-reward objective `E_total(τ)` over a grid; computes a cluster-bootstrap CI.
-5. **Savings** (`restartwell.savings`) — estimates cost-per-success at τ\* vs current cutoff; suppresses the estimate when the bootstrap CI straddles zero.
-6. **Luby** (`restartwell.luby`) — when evidence is inconclusive, returns a Luby universal schedule anchored at the median success cost.
-7. **Emit** (`restartwell.emit`) — formats a paste-able config snippet for common agent frameworks.
-8. **Instrument** (`restartwell.instrument`) — `analyze()` wires all of the above into a single `RestartReport`; `analyze_by_cohort()` runs it per cohort.
 
 ---
 
