@@ -115,21 +115,9 @@ reports = analyze_by_cohort(attempts, r=1500, unit="tokens")
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    A[logs_jsonl or AttemptRecord list] --> B[intake<br>parse_records / from_jsonl]
-    B --> C[survival<br>Kaplan-Meier via hazardloop or shim]
-    C --> D[effectiveness<br>concavity / restart_effectiveness]
-    D --> E{verdict}
-    E -->|restart_helps| F[cutoff<br>optimal_cutoff tau_star]
-    E -->|do_not_restart| G[instrument<br>assemble]
-    E -->|inconclusive| H[luby<br>luby_schedule]
-    F --> I[savings<br>expected_savings vs current cutoff]
-    F --> G
-    I --> G
-    H --> G
-    G --> J[RestartReport<br>verdict + cutoff + savings + luby]
-```
+<div align="center">
+  <img src="docs/architecture.png" alt="restartwell architecture" width="840">
+</div>
 
 The `survival` module is the **only** layer that imports `hazardloop`; the rest of the
 pipeline is decoupled from the survival backend and works with the bundled standalone shim
@@ -192,3 +180,4 @@ Pre-alpha (`v0.1.0a2`). CPU-only, no model weights. Python ≥ 3.11.
 ## License
 
 MIT.
+

@@ -1,0 +1,47 @@
+direction: down
+explanation: |md
+  ### restartwell
+  **Offline renewal-reward restart-cutoff instrument for agent attempt-cost logs.**
+| {near: top-center}
+
+input: "① logs_jsonl or\nAttemptRecord list" {shape: oval; style: {fill: "#6366f1"; font-color: "#ffffff"; stroke: "#4338ca"; bold: true; font-size: 18}}
+
+intake: "② intake\nparse_records / from_jsonl" {style: {fill: "#0ea5e9"; font-color: "#ffffff"; stroke: "#0369a1"; bold: true; font-size: 18}}
+
+survival: "③ survival\nKaplan-Meier via hazardloop or shim" {style: {fill: "#0ea5e9"; font-color: "#ffffff"; stroke: "#0369a1"; bold: true}}
+
+effectiveness: "④ effectiveness\nconcavity / restart_effectiveness" {style: {fill: "#dcfce7"; font-color: "#065f46"; stroke: "#10b981"; bold: true}}
+
+verdict: "⑤ verdict" {style: {fill: "#fef3c7"; font-color: "#92400e"; stroke: "#f59e0b"; bold: true}}
+
+verdict_zone: "Verdict Paths" {
+  style: {fill: "#f0fdf4"; stroke: "#10b981"; font-color: "#065f46"; bold: true; font-size: 16}
+  cutoff: "cutoff\noptimal_cutoff tau_star"
+  luby: "luby\nluby_schedule"
+  savings: "savings\nexpected_savings vs current"
+  *.style.fill: "#dcfce7"; *.style.font-color: "#065f46"
+}
+
+instrument: "⑥ instrument\nassemble" {style: {fill: "#0ea5e9"; font-color: "#ffffff"; stroke: "#0369a1"; bold: true}}
+
+report: "⑦ RestartReport\nverdict + cutoff + savings + luby" {shape: cylinder; style: {fill: "#fdf2f8"; font-color: "#9d174e"; stroke: "#ec4899"; bold: true}}
+
+input -> intake: "① parse"
+intake -> survival: "② model"
+survival -> effectiveness: "③ compute"
+effectiveness -> verdict: "④ assess"
+verdict -> verdict_zone.cutoff: "⑤ restart_helps"
+verdict -> verdict_zone.luby: "⑤ inconclusive"
+verdict -> instrument: "⑤ do_not_restart"
+verdict_zone.cutoff -> verdict_zone.savings: "⑥ estimate"
+verdict_zone.cutoff -> instrument: "⑥ assemble"
+verdict_zone.savings -> instrument: "⑥ assemble"
+verdict_zone.luby -> instrument: "⑥ assemble"
+instrument -> report: "⑦ emit"
+
+legend: "Legend" {
+  near: bottom-center
+  style: {fill: "#f8fafc"; stroke: "#cbd5e1"; font-size: 13}
+  e: "● entry"; c: "● core/engine"; p: "● verdict paths"; b: "● decision"; d: "● output"
+  e.style.font-color: "#4338ca"; c.style.font-color: "#0369a1"; p.style.font-color: "#10b981"; b.style.font-color: "#f59e0b"; d.style.font-color: "#ec4899"
+}
