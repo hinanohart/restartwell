@@ -31,7 +31,7 @@ flowchart TD
     C --> D[effectiveness\nconcavity / restart_effectiveness]
     D --> E{verdict}
     E -->|restart_helps| F[cutoff\noptimal_cutoff tau_star]
-    E -->|do_not_restart| G[emit\nraise timeout advice]
+    E -->|do_not_restart| G[instrument\nraise timeout note]
     E -->|inconclusive| H[luby\nluby_schedule]
     F --> I[savings\nexpected_savings vs current cutoff]
     F --> G
