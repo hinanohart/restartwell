@@ -26,18 +26,18 @@ and emits a decision + config. It does not run, retrain, or live-control your ag
 
 ```mermaid
 flowchart TD
-    A[logs_jsonl or AttemptRecord list] --> B[intake\nparse_records / from_jsonl]
-    B --> C[survival\nKaplan-Meier via hazardloop or shim]
-    C --> D[effectiveness\nconcavity / restart_effectiveness]
+    A[logs_jsonl or AttemptRecord list] --> B[intake<br>parse_records / from_jsonl]
+    B --> C[survival<br>Kaplan-Meier via hazardloop or shim]
+    C --> D[effectiveness<br>concavity / restart_effectiveness]
     D --> E{verdict}
-    E -->|restart_helps| F[cutoff\noptimal_cutoff tau_star]
-    E -->|do_not_restart| G[instrument\nassemble + emit]
-    E -->|inconclusive| H[luby\nluby_schedule]
-    F --> I[savings\nexpected_savings vs current cutoff]
+    E -->|restart_helps| F[cutoff<br>optimal_cutoff tau_star]
+    E -->|do_not_restart| G[instrument<br>assemble + emit]
+    E -->|inconclusive| H[luby<br>luby_schedule]
+    F --> I[savings<br>expected_savings vs current cutoff]
     F --> G
     I --> G
     H --> G
-    G --> J[RestartReport\nverdict + cutoff + savings + config snippet]
+    G --> J[RestartReport<br>verdict + cutoff + savings + config snippet]
 ```
 
 The `survival` module is the **only** layer that imports `hazardloop`; the rest of the
