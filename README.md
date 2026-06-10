@@ -31,13 +31,13 @@ flowchart TD
     C --> D[effectiveness<br>concavity / restart_effectiveness]
     D --> E{verdict}
     E -->|restart_helps| F[cutoff<br>optimal_cutoff tau_star]
-    E -->|do_not_restart| G[instrument<br>assemble + emit]
+    E -->|do_not_restart| G[instrument<br>assemble]
     E -->|inconclusive| H[luby<br>luby_schedule]
     F --> I[savings<br>expected_savings vs current cutoff]
     F --> G
     I --> G
     H --> G
-    G --> J[RestartReport<br>verdict + cutoff + savings + config snippet]
+    G --> J[RestartReport<br>verdict + cutoff + savings + luby]
 ```
 
 The `survival` module is the **only** layer that imports `hazardloop`; the rest of the
